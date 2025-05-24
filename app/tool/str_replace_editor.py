@@ -158,7 +158,7 @@ class StrReplaceEditor(BaseTool):
         else:
             # This should be caught by type checking, but we include it for safety
             raise ToolError(
-                f'Unrecognized command {command}. The allowed commands for the {self.name} tool are: {", ".join(get_args(Command))}'
+                f"Unrecognized command {command}. The allowed commands for the {self.name} tool are: {', '.join(get_args(Command))}"
             )
 
         return str(result)

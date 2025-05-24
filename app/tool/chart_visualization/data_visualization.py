@@ -84,7 +84,7 @@ Outputs:
         if len(result) == 0:
             return "Is EMPTY!"
         for item in result:
-            content += f"""## {item['title']}\nChart saved in: {item['chart_path']}"""
+            content += f"""## {item["title"]}\nChart saved in: {item["chart_path"]}"""
             if "insight_path" in item and item["insight_path"] and "insight_md" in item:
                 content += "\n" + item["insight_md"]
             else:

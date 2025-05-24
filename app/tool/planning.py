@@ -280,7 +280,7 @@ class PlanningTool(BaseTool):
 
         if step_index < 0 or step_index >= len(plan["steps"]):
             raise ToolError(
-                f"Invalid step_index: {step_index}. Valid indices range from 0 to {len(plan['steps'])-1}."
+                f"Invalid step_index: {step_index}. Valid indices range from 0 to {len(plan['steps']) - 1}."
             )
 
         if step_status and step_status not in [
