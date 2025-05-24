@@ -90,9 +90,7 @@ client = ApiClient()
 # Use fully-qualified API names and parameters as specified in API documentation events.
 # Always use complete query parameter format in query={{...}}, never omit parameter names.
 weather = client.call_api('WeatherBank/get_weather', query={{'location': 'Singapore'}})
-print(weather)
-# --snip--
-```
+print(weather)```
 </datasource_module_code_example>
 
 <todo_rules>
