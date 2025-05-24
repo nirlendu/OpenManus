@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 import requests
 
+from app.config import config
 from app.logger import logger
 from app.tool.base import BaseTool
 
@@ -10,7 +11,9 @@ class Summary(BaseTool):
     """A tool for fetching real time information summary of the query"""
 
     name: str = "summary"
-    description: str = "This is to fetch the real time information summary of the query. Most of the times when approximate results are enough, use this tool to fetch search results"
+    description: str = (
+        "This is to fetch the real time information summary of the query. Most of the times when approximate results are enough, use this tool to fetch search results"
+    )
     parameters: dict = {
         "type": "object",
         "properties": {
@@ -38,7 +41,7 @@ class Summary(BaseTool):
         """Get search results from Perplexity API."""
         try:
             headers = {
-                "Authorization": "Bearer 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",
+                "Authorization": f"Bearer {config.llm['default'].perplexity_api_key}",
                 "Content-Type": "application/json",
             }
 
