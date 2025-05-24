@@ -11,7 +11,6 @@ from app.prompt.toolcall import NEXT_STEP_PROMPT, SYSTEM_PROMPT
 from app.schema import TOOL_CHOICE_TYPE, AgentState, Message, ToolCall, ToolChoice
 from app.tool import CreateChatCompletion, Terminate, ToolCollection
 
-
 TOOL_CALL_REQUIRED = "Tool calls required but none provided"
 
 
@@ -43,7 +42,6 @@ class ToolCallAgent(ReActAgent):
             self.messages += [user_msg]
 
         try:
-            # Get response with tool options
             response = await self.llm.ask_tool(
                 messages=self.messages,
                 system_msgs=(
@@ -178,6 +176,7 @@ class ToolCallAgent(ReActAgent):
 
             # Execute the tool
             logger.info(f"🔧 Activating tool: '{name}'...")
+            logger.info(f"🔧 Activating args: '{args}'...")
             result = await self.available_tools.execute(name=name, tool_input=args)
 
             # Handle special tools

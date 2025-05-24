@@ -104,6 +104,9 @@ class LocalSandboxClient(BaseSandboxClient):
         Raises:
             RuntimeError: If sandbox creation fails.
         """
+        print(
+            f"🔍 ********* Creating sandbox with config: {config} and volume_bindings: {volume_bindings}"
+        )
         self.sandbox = DockerSandbox(config, volume_bindings)
         await self.sandbox.create()
 
