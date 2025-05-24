@@ -4,7 +4,7 @@ import requests
 
 from app.config import config
 from app.logger import logger
-from app.tool.base import BaseTool
+from app.tool.base import BaseTool, ToolResult
 
 
 class Summary(BaseTool):
@@ -67,7 +67,8 @@ class Summary(BaseTool):
             )
 
             if response.status_code == 200:
-                return response.json()
+                res = response.json()
+                return ToolResult(output=res["choices"][0]["message"]["content"])
             else:
                 logger.warning(
                     f"Perplexity API returned status code {response.status_code}"
