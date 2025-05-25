@@ -30,7 +30,7 @@ def temp_dir() -> Path:
 async def test_sandbox_creation(local_client: LocalSandboxClient):
     """Tests sandbox creation with specific configuration."""
     config = SandboxSettings(
-        image="python:3.12-slim",
+        image="python:3.9-slim",
         work_dir="/workspace",
         memory_limit="512m",
         cpu_limit=0.5,
@@ -38,7 +38,7 @@ async def test_sandbox_creation(local_client: LocalSandboxClient):
 
     await local_client.create(config)
     result = await local_client.run_command("python3 --version")
-    assert "Python 3.10" in result
+    assert "Python 3.9.22" in result
 
 
 @pytest.mark.asyncio

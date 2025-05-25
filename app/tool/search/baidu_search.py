@@ -22,13 +22,15 @@ class BaiduSearchEngine(WebSearchEngine):
             if isinstance(item, str):
                 # If it's just a URL
                 results.append(
-                    SearchItem(title=f"Baidu Result {i+1}", url=item, description=None)
+                    SearchItem(
+                        title=f"Baidu Result {i + 1}", url=item, description=None
+                    )
                 )
             elif isinstance(item, dict):
                 # If it's a dictionary with details
                 results.append(
                     SearchItem(
-                        title=item.get("title", f"Baidu Result {i+1}"),
+                        title=item.get("title", f"Baidu Result {i + 1}"),
                         url=item.get("url", ""),
                         description=item.get("abstract", None),
                     )
@@ -38,7 +40,7 @@ class BaiduSearchEngine(WebSearchEngine):
                 try:
                     results.append(
                         SearchItem(
-                            title=getattr(item, "title", f"Baidu Result {i+1}"),
+                            title=getattr(item, "title", f"Baidu Result {i + 1}"),
                             url=getattr(item, "url", ""),
                             description=getattr(item, "abstract", None),
                         )
@@ -47,7 +49,9 @@ class BaiduSearchEngine(WebSearchEngine):
                     # Fallback to a basic result
                     results.append(
                         SearchItem(
-                            title=f"Baidu Result {i+1}", url=str(item), description=None
+                            title=f"Baidu Result {i + 1}",
+                            url=str(item),
+                            description=None,
                         )
                     )
 

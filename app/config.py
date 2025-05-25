@@ -28,6 +28,9 @@ class LLMSettings(BaseModel):
     temperature: float = Field(1.0, description="Sampling temperature")
     api_type: str = Field(..., description="Azure, Openai, or Ollama")
     api_version: str = Field(..., description="Azure Openai version if AzureOpenai")
+    perplexity_api_key: str = Field(
+        ..., description="Perplexity API key for web search"
+    )
 
 
 class ProxySettings(BaseModel):
@@ -88,8 +91,8 @@ class BrowserSettings(BaseModel):
 class SandboxSettings(BaseModel):
     """Configuration for the execution sandbox"""
 
-    use_sandbox: bool = Field(False, description="Whether to use the sandbox")
-    image: str = Field("python:3.12-slim", description="Base image")
+    use_sandbox: bool = Field(True, description="Whether to use the sandbox")
+    image: str = Field("python:3.9-slim", description="Base image")
     work_dir: str = Field("/workspace", description="Container working directory")
     memory_limit: str = Field("512m", description="Memory limit")
     cpu_limit: float = Field(1.0, description="CPU limit")
@@ -215,6 +218,7 @@ class Config:
             "temperature": base_llm.get("temperature", 1.0),
             "api_type": base_llm.get("api_type", ""),
             "api_version": base_llm.get("api_version", ""),
+            "perplexity_api_key": base_llm.get("perplexity_api_key", ""),
         }
 
         # handle browser config.

@@ -30,8 +30,7 @@ from app.schema import (
     ToolChoice,
 )
 
-
-REASONING_MODELS = ["o1", "o3-mini"]
+REASONING_MODELS = ["o1", "o3-mini", "o4-mini"]
 MULTIMODAL_MODELS = [
     "gpt-4-vision-preview",
     "gpt-4o",
@@ -463,10 +462,10 @@ class LLM:
             # Re-raise token limit errors without logging
             raise
         except ValueError:
-            logger.exception(f"Validation error")
+            logger.exception("Validation error")
             raise
         except OpenAIError as oe:
-            logger.exception(f"OpenAI API error")
+            logger.exception("OpenAI API error")
             if isinstance(oe, AuthenticationError):
                 logger.error("Authentication failed. Check API key.")
             elif isinstance(oe, RateLimitError):
@@ -475,7 +474,7 @@ class LLM:
                 logger.error(f"API error: {oe}")
             raise
         except Exception:
-            logger.exception(f"Unexpected error in ask")
+            logger.exception("Unexpected error in ask")
             raise
 
     @retry(
@@ -537,9 +536,7 @@ class LLM:
             multimodal_content = (
                 [{"type": "text", "text": content}]
                 if isinstance(content, str)
-                else content
-                if isinstance(content, list)
-                else []
+                else content if isinstance(content, list) else []
             )
 
             # Add images to content
@@ -728,15 +725,26 @@ class LLM:
                     temperature if temperature is not None else self.temperature
                 )
 
+            # Add system message to ensure explanation
+            if not any(msg.get("role") == "system" for msg in params["messages"]):
+                params["messages"].insert(
+                    0,
+                    {
+                        "role": "system",
+                        "content": "Always provide a brief explanation of your reasoning before making any tool calls. Even if you're primarily using tools, include a sentence or two explaining your thought process.",
+                    },
+                )
+
             params["stream"] = False  # Always use non-streaming for tool requests
+
             response: ChatCompletion = await self.client.chat.completions.create(
                 **params
             )
 
             # Check if response is valid
             if not response.choices or not response.choices[0].message:
+                logger.error("Invalid or empty response from LLM")
                 print(response)
-                # raise ValueError("Invalid or empty response from LLM")
                 return None
 
             # Update token counts
@@ -744,7 +752,8 @@ class LLM:
                 response.usage.prompt_tokens, response.usage.completion_tokens
             )
 
-            return response.choices[0].message
+            message = response.choices[0].message
+            return message
 
         except TokenLimitExceeded:
             # Re-raise token limit errors without logging

@@ -8,7 +8,7 @@ from app.sandbox.core.sandbox import DockerSandbox, SandboxSettings
 def sandbox_config():
     """Creates sandbox configuration for testing."""
     return SandboxSettings(
-        image="python:3.12-slim",
+        image="python:3.9-slim",
         work_dir="/workspace",
         memory_limit="1g",
         cpu_limit=0.5,
@@ -91,7 +91,7 @@ async def test_sandbox_python_environment(sandbox):
     """Tests Python environment configuration."""
     # Test Python version
     result = await sandbox.terminal.run_command("python3 --version")
-    assert "Python 3.10" in result
+    assert "Python 3.9" in result
 
     # Test basic module imports
     python_code = """

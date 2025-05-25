@@ -11,7 +11,6 @@ from app.prompt.toolcall import NEXT_STEP_PROMPT, SYSTEM_PROMPT
 from app.schema import TOOL_CHOICE_TYPE, AgentState, Message, ToolCall, ToolChoice
 from app.tool import CreateChatCompletion, Terminate, ToolCollection
 
-
 TOOL_CALL_REQUIRED = "Tool calls required but none provided"
 
 
@@ -43,7 +42,6 @@ class ToolCallAgent(ReActAgent):
             self.messages += [user_msg]
 
         try:
-            # Get response with tool options
             response = await self.llm.ask_tool(
                 messages=self.messages,
                 system_msgs=(
@@ -116,7 +114,15 @@ class ToolCallAgent(ReActAgent):
 
             # For 'auto' mode, continue with content if no commands but content exists
             if self.tool_choices == ToolChoice.AUTO and not self.tool_calls:
-                return bool(content)
+                if content:
+                    self.memory.add_message(Message.assistant_message(content))
+                    return True
+                else:
+                    logger.info(
+                        "No tools selected and no content provided - terminating execution"
+                    )
+                    self.state = AgentState.FINISHED
+                    return False
 
             return bool(self.tool_calls)
         except Exception as e:
@@ -178,6 +184,7 @@ class ToolCallAgent(ReActAgent):
 
             # Execute the tool
             logger.info(f"🔧 Activating tool: '{name}'...")
+            logger.info(f"🔧 Activating args: '{args}'...")
             result = await self.available_tools.execute(name=name, tool_input=args)
 
             # Handle special tools
@@ -187,6 +194,12 @@ class ToolCallAgent(ReActAgent):
             if hasattr(result, "base64_image") and result.base64_image:
                 # Store the base64_image for later use in tool_message
                 self._current_base64_image = result.base64_image
+
+            # Check for success status in the result
+            if isinstance(result, str) and result.strip() == '{"status":"success"}':
+                logger.info("🎉 Success status received - terminating session")
+                self.state = AgentState.FINISHED
+                return "Task completed successfully"
 
             # Format result for display (standard case)
             observation = (
@@ -210,6 +223,16 @@ class ToolCallAgent(ReActAgent):
     async def _handle_special_tool(self, name: str, result: Any, **kwargs):
         """Handle special tool execution and state changes"""
         if not self._is_special_tool(name):
+            return
+
+        if name.lower() == Terminate().name.lower():
+            # Set agent state to finished
+            logger.info(f"🏁 Terminate tool called - ending execution")
+            self.state = AgentState.FINISHED
+            # Add a final message to memory
+            self.memory.add_message(
+                Message.assistant_message("Task execution terminated as requested.")
+            )
             return
 
         if self._should_finish_execution(name=name, result=result, **kwargs):
