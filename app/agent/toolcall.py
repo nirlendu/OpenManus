@@ -114,7 +114,15 @@ class ToolCallAgent(ReActAgent):
 
             # For 'auto' mode, continue with content if no commands but content exists
             if self.tool_choices == ToolChoice.AUTO and not self.tool_calls:
-                return bool(content)
+                if content:
+                    self.memory.add_message(Message.assistant_message(content))
+                    return True
+                else:
+                    logger.info(
+                        "No tools selected and no content provided - terminating execution"
+                    )
+                    self.state = AgentState.FINISHED
+                    return False
 
             return bool(self.tool_calls)
         except Exception as e:
@@ -186,6 +194,12 @@ class ToolCallAgent(ReActAgent):
             if hasattr(result, "base64_image") and result.base64_image:
                 # Store the base64_image for later use in tool_message
                 self._current_base64_image = result.base64_image
+
+            # Check for success status in the result
+            if isinstance(result, str) and result.strip() == '{"status":"success"}':
+                logger.info("🎉 Success status received - terminating session")
+                self.state = AgentState.FINISHED
+                return "Task completed successfully"
 
             # Format result for display (standard case)
             observation = (
