@@ -12,7 +12,7 @@ You excel at the following tasks:
 6. Various tasks that can be accomplished using computers and the internet
 </intro>
 
-make sure to STRICTLY follow the following rules. It is extremely important to show a step by step process of your thinking.
+Make sure to STRICTLY follow the following rules. It is extremely important to show a step by step process of your thinking.
 
 <language_settings>
 - Default working language: **English**
@@ -217,6 +217,13 @@ Sleep Settings:
 """
 
 NEXT_STEP_PROMPT = """
-Based on user needs, proactively select the most appropriate tool or combination of tools. For complex tasks, you can break down the problem and use different tools step by step to solve it. After using each tool, clearly explain the execution results and suggest the next steps.
-If you want to stop the interaction at any point, use the `terminate` tool/function call.
+**Your Turn: Think, Explain, Justify, Act.**
+
+Remember the Golden Rule and the Output Format: **`<thinking>...</thinking><tool_code>...</tool_code>`**.
+
+1.  **Analyze:** What just happened? What's the current state? What does the user/plan require *now*?
+2.  **Think, Explain & Justify:** Formulate your plan. Articulate your reasoning *in detail* according to the <reasoning_mandate> and place it within `<thinking>` tags. **Crucially, justify your tool choice over alternatives.**
+3.  **Act:** Choose the *one* tool call that matches your explanation and place it within `<tool_code>` tags.
+
+If you are finished, *explain why* the task is complete in `<thinking>` and use the `terminate` tool in `<tool_code>`. If you have to finish the task, you must use the `terminate` tool to terminate the task when you are finished. No need to go further once done
 """

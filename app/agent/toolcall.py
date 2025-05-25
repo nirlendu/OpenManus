@@ -211,6 +211,16 @@ class ToolCallAgent(ReActAgent):
         if not self._is_special_tool(name):
             return
 
+        if name.lower() == Terminate().name.lower():
+            # Set agent state to finished
+            logger.info(f"🏁 Terminate tool called - ending execution")
+            self.state = AgentState.FINISHED
+            # Add a final message to memory
+            self.memory.add_message(
+                Message.assistant_message("Task execution terminated as requested.")
+            )
+            return
+
         if self._should_finish_execution(name=name, result=result, **kwargs):
             # Set agent state to finished
             logger.info(f"🏁 Special tool '{name}' has completed the task!")
