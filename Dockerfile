@@ -1,6 +1,6 @@
 FROM python:3.9-slim
 
-WORKDIR /app/OpenManus
+WORKDIR /app/SuperAgent
 
 RUN apt-get update && apt-get install -y --no-install-recommends git curl \
     && rm -rf /var/lib/apt/lists/* \

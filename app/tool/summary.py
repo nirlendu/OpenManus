@@ -11,9 +11,7 @@ class Summary(BaseTool):
     """A tool for fetching real time information summary of the query"""
 
     name: str = "summary"
-    description: str = (
-        "This is to fetch the real time information summary of the query. Most of the times when approximate results are enough, use this tool to fetch search results"
-    )
+    description: str = "This is to fetch the real time information summary of the query. Most of the times when approximate results are enough, use this tool to fetch search results"
     parameters: dict = {
         "type": "object",
         "properties": {

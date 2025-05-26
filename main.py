@@ -1,12 +1,12 @@
 import asyncio
 
-from app.agent.manus import Manus
+from app.agent.superagent import SuperAgent
 from app.logger import logger
 
 
 async def main():
-    # Create and initialize Manus agent
-    agent = await Manus.create()
+    # Create and initialize SuperAgent agent
+    agent = await SuperAgent.create()
     try:
         prompt = input("Enter your prompt: ")
         if not prompt.strip():

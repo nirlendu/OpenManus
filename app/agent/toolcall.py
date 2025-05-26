@@ -266,7 +266,7 @@ class ToolCallAgent(ReActAgent):
 
         if name.lower() == Terminate().name.lower():
             # Set agent state to finished
-            logger.info(f"🏁 Terminate tool called - ending execution")
+            logger.info("🏁 Terminate tool called - ending execution")
             self.state = AgentState.FINISHED
             # Add a final message to memory
             self.memory.add_message(

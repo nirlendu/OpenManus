@@ -1,11 +1,10 @@
-import asyncio
 import json
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from app.agent.manus import Manus
+from app.agent.superagent import SuperAgent
 from app.schema import Message
 
 app = FastAPI()
@@ -19,8 +18,8 @@ class PromptRequest(BaseModel):
 async def stream_prompt(request: PromptRequest):
     """Stream the agent's response to a prompt with human-readable steps"""
     try:
-        # Create a new Manus instance
-        agent = await Manus.create()
+        # Create a new SuperAgent instance
+        agent = await SuperAgent.create()
 
         async def generate():
             try:

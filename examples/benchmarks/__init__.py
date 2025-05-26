@@ -1,3 +1,3 @@
 """
-OpenManus benchmark system for standardized agent evaluation.
+SuperAgent benchmark system for standardized agent evaluation.
 """

@@ -6,7 +6,7 @@ from app.agent.browser import BrowserContextHelper
 from app.agent.toolcall import ToolCallAgent
 from app.config import config
 from app.logger import logger
-from app.prompt.manus import NEXT_STEP_PROMPT, SYSTEM_PROMPT
+from app.prompt.superagent import NEXT_STEP_PROMPT, SYSTEM_PROMPT
 from app.schema import AgentState, Message
 from app.tool import Terminate, ToolCollection
 from app.tool.ask_human import AskHuman
@@ -17,10 +17,10 @@ from app.tool.str_replace_editor import StrReplaceEditor
 from app.tool.summary import Summary
 
 
-class Manus(ToolCallAgent):
-    """A versatile general-purpose agent with support for both local and MCP tools."""
+class SuperAgent(ToolCallAgent):
+    """SuperAgent is a powerful AI agent that can use tools to accomplish tasks."""
 
-    name: str = "Manus"
+    name: str = "SuperAgent"
     description: str = (
         "A versatile agent that can solve various tasks using multiple tools including MCP-based tools"
     )
@@ -61,14 +61,14 @@ class Manus(ToolCallAgent):
     _stuck_count: int = 0
 
     @model_validator(mode="after")
-    def initialize_helper(self) -> "Manus":
-        """Initialize basic components synchronously."""
+    def initialize_helper(self) -> "SuperAgent":
+        """Initialize helper methods for SuperAgent."""
         self.browser_context_helper = BrowserContextHelper(self)
         return self
 
     @classmethod
-    async def create(cls, **kwargs) -> "Manus":
-        """Factory method to create and properly initialize a Manus instance."""
+    async def create(cls, **kwargs) -> "SuperAgent":
+        """Factory method to create and properly initialize a SuperAgent instance."""
         instance = cls(**kwargs)
         await instance.initialize_mcp_servers()
         instance._initialized = True
@@ -139,7 +139,7 @@ class Manus(ToolCallAgent):
         self.available_tools.add_tools(*self.mcp_clients.tools)
 
     async def cleanup(self):
-        """Clean up Manus agent resources."""
+        """Clean up SuperAgent agent resources."""
         if self.browser_context_helper:
             await self.browser_context_helper.cleanup_browser()
         # Disconnect from all MCP servers only if we were initialized
