@@ -37,6 +37,30 @@ class ToolCallAgent(ReActAgent):
 
     async def think(self) -> bool:
         """Process current state and decide next actions using tools"""
+        # Check for stuck state
+        if self.state == self._last_state:
+            self._stuck_count += 1
+            if self._stuck_count >= self.max_stuck_count:
+                logger.warning(
+                    "Agent detected stuck state. Adding prompt to break the loop."
+                )
+                self.memory.add_message(
+                    Message.system_message(
+                        "You seem to be stuck in a loop. Please provide a clear next step or conclude the task."
+                    )
+                )
+                self._stuck_count = 0
+        else:
+            self._stuck_count = 0
+        self._last_state = self.state
+
+        # Increment step counter
+        self.current_step += 1
+        if self.current_step > self.max_steps:
+            logger.warning(f"Maximum steps ({self.max_steps}) reached. Terminating.")
+            self.state = AgentState.FINISHED
+            return False
+
         if self.next_step_prompt:
             user_msg = Message.user_message(self.next_step_prompt)
             self.messages += [user_msg]
@@ -85,6 +109,17 @@ class ToolCallAgent(ReActAgent):
                 f"🧰 Tools being prepared: {[call.function.name for call in tool_calls]}"
             )
             logger.info(f"🔧 Tool arguments: {tool_calls[0].function.arguments}")
+            # Check for termination in tool arguments
+            try:
+                args = json.loads(tool_calls[0].function.arguments or "{}")
+                if args.get("status") == "success":
+                    logger.info(
+                        "Termination detected in tool arguments - ending execution"
+                    )
+                    self.state = AgentState.FINISHED
+                    return False
+            except json.JSONDecodeError:
+                pass  # Ignore JSON parsing errors in arguments
 
         try:
             if response is None:
@@ -113,9 +148,12 @@ class ToolCallAgent(ReActAgent):
                 return True  # Will be handled in act()
 
             # For 'auto' mode, continue with content if no commands but content exists
-            if self.tool_choices == ToolChoice.AUTO and not self.tool_calls:
-                if content:
-                    self.memory.add_message(Message.assistant_message(content))
+            if self.tool_choices == ToolChoice.AUTO:
+                if tool_calls:
+                    return True  # We have tools to execute
+                elif content:
+                    # No tools but we have content, so we're done
+                    logger.info("No tools selected but content provided - continuing")
                     return True
                 else:
                     logger.info(
@@ -132,6 +170,7 @@ class ToolCallAgent(ReActAgent):
                     f"Error encountered while processing: {str(e)}"
                 )
             )
+            self.state = AgentState.ERROR
             return False
 
     async def act(self) -> str:

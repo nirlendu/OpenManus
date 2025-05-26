@@ -7,6 +7,7 @@ from app.agent.toolcall import ToolCallAgent
 from app.config import config
 from app.logger import logger
 from app.prompt.manus import NEXT_STEP_PROMPT, SYSTEM_PROMPT
+from app.schema import AgentState, Message
 from app.tool import Terminate, ToolCollection
 from app.tool.ask_human import AskHuman
 from app.tool.browser_use_tool import BrowserUseTool
@@ -29,6 +30,9 @@ class Manus(ToolCallAgent):
 
     max_observe: int = 10000
     max_steps: int = 10
+    max_stuck_count: int = (
+        3  # Maximum number of times we can be in the same state before breaking the loop
+    )
 
     # MCP clients for remote tool access
     mcp_clients: MCPClients = Field(default_factory=MCPClients)
@@ -53,6 +57,8 @@ class Manus(ToolCallAgent):
         default_factory=dict
     )  # server_id -> url/command
     _initialized: bool = False
+    _last_state: Optional[AgentState] = None
+    _stuck_count: int = 0
 
     @model_validator(mode="after")
     def initialize_helper(self) -> "Manus":
@@ -167,3 +173,53 @@ class Manus(ToolCallAgent):
         self.next_step_prompt = original_prompt
 
         return result
+
+    async def stream(self, prompt: str):
+        """Stream the agent's response to a prompt"""
+        try:
+            # Add user message to memory
+            user_msg = Message.user_message(prompt)
+            self.memory.add_message(user_msg)
+
+            # Process the prompt iteratively
+            while self.state not in [AgentState.FINISHED, AgentState.ERROR]:
+                # Think step
+                if not await self.think():
+                    break
+
+                # Act step
+                try:
+                    result = await self.act()
+                    if result:
+                        yield {"content": result}
+                        # Check if this was a termination result
+                        if (
+                            isinstance(result, str)
+                            and result.strip() == '{"status":"success"}'
+                        ):
+                            logger.info("Termination detected - ending stream")
+                            break
+                except Exception as e:
+                    logger.error(f"Error in act step: {str(e)}")
+                    yield {"error": str(e)}
+                    break
+
+                # Observe step
+                try:
+                    await self.observe()
+                except Exception as e:
+                    logger.error(f"Error in observe step: {str(e)}")
+                    yield {"error": str(e)}
+                    break
+
+            # Yield the last assistant message if available
+            last_msg = self.memory.get_last_assistant_message()
+            if last_msg and last_msg.content:
+                yield {"content": last_msg.content}
+
+        except Exception as e:
+            logger.error(f"Error in stream generation: {str(e)}")
+            yield {"error": str(e)}
+        finally:
+            # Ensure cleanup happens
+            await self.cleanup()
